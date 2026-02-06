@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>발렌타인</title>
+  <style>
+    :root {
+      --pink1: #ffd1e8;
+      --pink2: #ff9fc9;
+      --pink3: #ff6fb1;
+      --text: #5a1b3a;
+      --card: rgba(255, 255, 255, 0.75);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Apple SD Gothic Neo",
+                   "Noto Sans KR", Arial, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #ffffff 0%, var(--pink1) 30%, var(--pink2) 65%, var(--pink3) 100%);
+    }
+
+    /* 하트 폭죽 레이어 */
+    #confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 10;
+    }
+    .heart {
+      position: absolute;
+      top: -12vh;
+      opacity: 0.95;
+      will-change: transform, opacity;
+      animation: fall linear forwards;
+      filter: drop-shadow(0 8px 10px rgba(90, 27, 58, 0.18));
+    }
+    @keyframes fall {
+      0%   { transform: translate3d(var(--x, 0px), -12vh, 0) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      100% { transform: translate3d(var(--x, 0px), 112vh, 0) rotate(var(--r, 360deg)); opacity: 0; }
+    }
+
+    .bg-emoji {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      filter: blur(0.2px);
+      z-index: 0;
+    }
+    .bg-emoji span {
+      position: absolute;
+      font-size: clamp(24px, 3.2vw, 44px);
+      animation: floaty 6s ease-in-out infinite;
+      transform: translate(-50%, -50%);
+      user-select: none;
+    }
+    @keyframes floaty {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-18px); }
+    }
+
+    .card {
+      position: relative;
+      width: min(520px, 92vw);
+      padding: 26px 22px 22px;
+      border-radius: 22px;
+      background: var(--card);
+      box-shadow: 0 18px 55px rgba(90, 27, 58, 0.22);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.55);
+      text-align: center;
+      z-index: 2;
+    }
+
+    h1 {
+      margin: 6px 0 10px;
+      font-size: clamp(22px, 4.2vw, 34px);
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      color: rgba(90, 27, 58, 0.85);
+      font-size: clamp(14px, 2.6vw, 16px);
+    }
+
+    .row-emoji {
+      font-size: clamp(26px, 5vw, 40px);
+      margin: 10px 0 18px;
+      user-select: none;
+    }
+
+    .btn-area {
+      position: relative;
+      height: 130px;
+      margin-top: 4px;
+      border-radius: 18px;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      box-shadow: 0 10px 22px rgba(90, 27, 58, 0.18);
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    #yesBtn {
+      background: #ffffff;
+      color: var(--text);
+      border: 2px solid rgba(90, 27, 58, 0.12);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-120%, -50%);
+      z-index: 3;
+    }
+
+    #noBtn {
+      background: #ff2f78;
+      color: white;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(20%, -50%);
+      z-index: 3;
+    }
+
+    .toast {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(90, 27, 58, 0.12);
+      color: var(--text);
+      display: none;
+      line-height: 1.4;
+      white-space: pre-line;
+      word-break: break-word;
+      text-align: left;
+    }
+    .toast a { color: #c0195f; font-weight: 800; }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(90, 27, 58, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <div id="confetti" aria-hidden="true"></div>
+  <div class="bg-emoji" aria-hidden="true" id="bg"></div>
+
+  <div class="card">
+    <div class="row-emoji">😍💗✨🌸🍫💞😍</div>
+    <h1>내 발렌타인이 되어줄래??</h1>
+    <p class="subtitle">대답은… 이미 정해져 있는 것 같은데? 💘</p>
+
+    <div class="btn-area" id="arena">
+      <button id="yesBtn" type="button">YES 💖</button>
+      <button id="noBtn" type="button">NO 🙈</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <div class="hint">팁: NO에 커서/손가락 가까이 가져가봐 😏</div>
+  </div>
+
+  <script>
+    // 배경 이모지 랜덤 배치
+    const bg = document.getElementById("bg");
+    const emojis = ["😍","💗","💞","✨","🌸","🍫","💘","😘","🫶","🎀","💕"];
+    for (let i = 0; i < 22; i++) {
+      const s = document.createElement("span");
+      s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      s.style.left = Math.random() * 100 + "%";
+      s.style.top = Math.random() * 100 + "%";
+      s.style.animationDelay = (Math.random() * 4) + "s";
+      s.style.animationDuration = (4 + Math.random() * 5) + "s";
+      bg.appendChild(s);
+    }
+
+    const arena = document.getElementById("arena");
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const toast = document.getElementById("toast");
+    const confetti = document.getElementById("confetti");
+
+    function showToastHtml(html) {
+      toast.innerHTML = html;
+      toast.style.display = "block";
+    }
+
+    // ===== NO 도망(모바일 튜닝) =====
+    function distanceToNo(clientX, clientY) {
+      const rect = noBtn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      return Math.hypot(clientX - cx, clientY - cy);
+    }
+
+    function moveNoButton() {
+      const arenaRect = arena.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      const padding = 10;
+      const maxX = Math.max(padding, arenaRect.width - btnRect.width - padding);
+      const maxY = Math.max(padding, arenaRect.height - btnRect.height - padding);
+
+      const x = padding + Math.random() * (maxX - padding);
+      const y = padding + Math.random() * (maxY - padding);
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+      noBtn.style.transform = "translate(0, 0)";
+    }
+
+    function onPointerMove(e) {
+      const threshold = (e.pointerType === "touch") ? 190 : 140; // 터치에서 더 민감
+      if (distanceToNo(e.clientX, e.clientY) < threshold) moveNoButton();
+    }
+
+    noBtn.addEventListener("mouseenter", moveNoButton);
+    noBtn.addEventListener("pointerenter", moveNoButton);
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
+
+    // ===== 하트 폭죽 =====
+    const hearts = ["💖","💗","💘","💕","💞","💓","❤️","🩷","😍"];
+    function spawnHeartBurst(count = 90, durationMs = 2200) {
+      const w = window.innerWidth;
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement("span");
+        el.className = "heart";
+        el.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+
+        const startX = Math.random() * w;
+        const drift = (Math.random() * 240 - 120);
+        const rotate = (Math.random() * 720 - 360) + "deg";
+        const size = 14 + Math.random() * 22;
+        const fallMs = 1200 + Math.random() * durationMs;
+        const delay = Math.random() * 250;
+
+        el.style.left = startX + "px";
+        el.style.fontSize = size + "px";
+        el.style.animationDuration = fallMs + "ms";
+        el.style.animationDelay = delay + "ms";
+        el.style.setProperty("--x", drift + "px");
+        el.style.setProperty("--r", rotate);
+
+        confetti.appendChild(el);
+        setTimeout(() => el.remove(), fallMs + delay + 200);
+      }
+    }
+
+    // YES 클릭: 폭죽 + 멘트/링크 표시 + NO 추격 종료
+    yesBtn.addEventListener("click", () => {
+      spawnHeartBurst(110, 2400);
+
+      const url = "https://ridibooks.com/books/5211000001?_s=instant&_q=%EC%9D%B4%EC%84%B8%EA%B3%84&_rdt_sid=search_instant&_rdt_idx=7&_rdt_arg=%EC%9D%B4%EC%84%B8%EA%B3%84";
+      showToastHtml(
+        "축하합니다! 💖 발렌타인데이 기념 이벤트에 당첨되셨습니다! 😍🍫💞\n" +
+        "아래 링크를 타고 들어가시면\n" +
+        "'이세계 착각 헌터'를 무료로 100화까지 감상하실 수 있습니다\n\n" +
+        "<a href=\"" + url + "\" target=\"_blank\" rel=\"noopener\">" + url + "</a>"
+      );
+
+      document.removeEventListener("pointermove", onPointerMove);
+      noBtn.disabled = true;
+      noBtn.style.opacity = 0.6;
+      noBtn.style.cursor = "not-allowed";
+    });
+  </script>
+</body>
+</html>
